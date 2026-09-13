@@ -1,0 +1,15 @@
+# ==========================================================================
+# PLATAFORMA DE CATÁLOGO - netlify.toml
+# Configuración mínima para sitio estático.
+# Fase 1: Sin funciones serverless, sin backend.
+# ==========================================================================
+
+[build]
+  command = "echo 'Build completo'"
+  publish = "."
+
+# Redirección SPA: todas las rutas llevan a index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
