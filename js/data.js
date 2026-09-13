@@ -110,8 +110,30 @@ function parseGvizResponse(text) {
     });
 }
 
-/* Fetch de una hoja por nombre. Devuelve array de objetos planos. */
+/* Fetch de una hoja por nombre. Devuelve array de objetos planos.
+   Prioridad: backend Apps Script (funciona con hoja privada).
+   Fallback: gviz público (solo si la hoja siguiera pública). */
 async function fetchSheet(sheetName) {
+    const apiUrl = APP_CONFIG.dataSource.appsScriptUrl;
+
+    /* Vía backend */
+    if (apiUrl) {
+        const response = await fetch(apiUrl + '?sheet=' + encodeURIComponent(sheetName));
+
+        if (!response.ok) {
+            throw new Error('Error HTTP ' + response.status + ' en hoja "' + sheetName + '"');
+        }
+
+        const data = await response.json();
+
+        if (!data.ok) {
+            throw new Error('Backend: ' + (data.error || 'error desconocido') + ' (hoja "' + sheetName + '")');
+        }
+
+        return data.rows;
+    }
+
+    /* Fallback gviz (hoja pública) */
     const sheetId = APP_CONFIG.dataSource.sheetId;
 
     if (!sheetId) {
@@ -123,10 +145,7 @@ async function fetchSheet(sheetName) {
 
     if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-            throw new Error(
-                'La hoja "' + sheetName + '" no es pública (401/403). ' +
-                'Compartila como "Cualquier persona con el enlace -> Lector".'
-            );
+            throw new Error('La hoja "' + sheetName + '" no es pública (401/403). Configurala como "Cualquier persona con el enlace -> Lector" o usá appsScriptUrl.');
         }
         throw new Error('Error HTTP ' + response.status + ' en hoja "' + sheetName + '"');
     }
@@ -288,24 +307,24 @@ async function getAllData() {
    FASE 10.5: ESCRITURA DE PEDIDOS EN LA HOJA orders
    -------------------------------------------------------------------------- */
 
-/* Envía el pedido a Apps Script (doPost) para registrarlo en la hoja orders.
-   Es "fire and forget": NUNCA bloquea ni rompe el envío por WhatsApp.
-   Con mode 'no-cors' el navegador no puede leer la respuesta,
-   pero la petición llega y el script la procesa. */
+/* Envía el pedido al backend (acción 'order' con token compartido).
+   Fire and forget: NUNCA bloquea el envío por WhatsApp. */
 async function saveOrderToSheet(order) {
     const url = APP_CONFIG.dataSource.appsScriptUrl;
 
     if (!url) {
-        console.warn('[Orders] appsScriptUrl sin configurar en js/config.js: el pedido no se guardará en la hoja orders.');
+        console.warn('[Orders] appsScriptUrl sin configurar: el pedido no se guardará en la hoja orders.');
         return false;
     }
+
+    const payload = Object.assign({ action: 'order', token: APP_CONFIG.dataSource.orderToken }, order);
 
     try {
         await fetch(url, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(order)
+            body: JSON.stringify(payload)
         });
         console.log('[Orders] Pedido registrado en la hoja orders:', order.id);
         return true;

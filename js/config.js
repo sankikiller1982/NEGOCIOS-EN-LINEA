@@ -1,14 +1,14 @@
 /* ==========================================================================
    PLATAFORMA DE CATÁLOGO - config.js
    Configuración general de la aplicación.
-   Fase 2: sheetId listo para recibir el ID real de Google Sheets.
+   Fase 12.1: backend Apps Script v2 (lecturas por script + token de pedidos).
    ========================================================================== */
 
 const APP_CONFIG = {
 
     /* Información del negocio.
-       En Fase 2 estos valores se leen desde la hoja "config" de Sheets.
-       Quedan como respaldo por si la hoja no responde. */
+       Se lee desde la hoja "config" de Sheets al cargar.
+       Queda como respaldo por si la hoja no responde. */
     business: {
         name: '',
         description: '',
@@ -19,8 +19,7 @@ const APP_CONFIG = {
         openingHours: ''
     },
 
-    /* Tema visual.
-       Se aplicará al CSS en Fase 8. Todavía no se usa. */
+    /* Tema visual. Se aplica desde la hoja en Fase 8. */
     theme: {
         primaryColor: '',
         secondaryColor: '',
@@ -29,19 +28,16 @@ const APP_CONFIG = {
 
     /* Fuente de datos.
        ------------------------------------------------------------------
-       CÓMO CONFIGURAR EL SHEET ID:
-       1. Abrí tu hoja de Google Sheets.
-       2. Copiá el ID desde la URL:
-          https://docs.google.com/spreadsheets/d/XXXXXXXXXXXX/edit
-          El ID es la parte XXXXXXXXXXXX (entre /d/ y /edit).
-       3. Pegalo entre las comillas de sheetId, abajo.
-       4. Verificá que la hoja esté compartida como:
-          "Cualquier persona con el enlace" -> "Lector"
+       sheetId:       ID de tu hoja (entre /d/ y /edit de la URL).
+       appsScriptUrl: URL /exec de tu Apps Script (backend v2).
+       orderToken:    EXACTAMENTE el mismo valor que pusiste en
+                      BACKEND_CONFIG.ORDER_TOKEN dentro del Apps Script.
        ------------------------------------------------------------------ */
     dataSource: {
         type: 'google-sheets',
-        sheetId: '1O8rwIwIiblmgr2CAQVU9MLj6uewVXOQAd9CqU4jIzUM',          // <-- PEGÁ ACÁ TU SHEET ID
-        appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyrDmyTlLZQlDxjZypQ8IY9OutQD_xPd-pMPKIkXcwLShsYRuUNOS5wYrJD8K5Ca_jw/exec'     // Alternativa solo si gviz falla por CORS
+        sheetId: '1O8rwIwIiblmgr2CAQVU9MLj6uewVXOQAd9CqU4jIzUM',
+        appsScriptUrl: 'https://script.google.com/macros/s/AKfycbyrDmyTlLZQlDxjZypQ8IY9OutQD_xPd-pMPKIkXcwLShsYRuUNOS5wYrJD8K5Ca_jw/exec',
+        orderToken: 'pedidos_x7Q2mL9pR4wZ31Ks'
     },
 
     /* Funcionalidades habilitadas. */
