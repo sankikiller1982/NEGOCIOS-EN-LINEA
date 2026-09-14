@@ -72,12 +72,50 @@ function clearAdminToken() {
    BACKEND
    -------------------------------------------------------------------------- */
 async function adminPost(payload) {
-    const response = await fetch(APP_CONFIG.dataSource.appsScriptUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-    });
+    /* Intento 1: POST normal */
+    try {
+        const response = await fetch(APP_CONFIG.dataSource.appsScriptUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const text = await response.text();
+        const parsed = tryParseJson_(text);
+        if (parsed) return parsed;
+    } catch (error) {
+        /* cae al respaldo */
+    }
+
+    /* Intento 2: GET con payload en base64 (inmune al redirect roto del POST).
+       En login, la contraseña viaja como hash SHA-256, nunca en texto plano. */
+    let send = payload;
+    if (payload.action === 'login' && payload.password) {
+        send = { action: 'login', passwordHash: await sha256HexBrowser_(payload.password) };
+    }
+
+    const encoded = btoa(encodeURIComponent(JSON.stringify(send)));
+    const url = APP_CONFIG.dataSource.appsScriptUrl +
+        '?action=' + encodeURIComponent(send.action) +
+        '&payload=' + encodeURIComponent(encoded);
+
+    const response = await fetch(url);
     return response.json();
+}
+
+function tryParseJson_(text) {
+    try {
+        const value = JSON.parse(text);
+        return (value && typeof value === 'object') ? value : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function sha256HexBrowser_(str) {
+    const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buffer)).map(function (b) {
+        return b.toString(16).padStart(2, '0');
+    }).join('');
 }
 
 async function loadAdminData() {

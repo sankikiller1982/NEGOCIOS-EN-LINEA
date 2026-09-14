@@ -307,8 +307,10 @@ async function getAllData() {
    FASE 10.5: ESCRITURA DE PEDIDOS EN LA HOJA orders
    -------------------------------------------------------------------------- */
 
-/* Envía el pedido al backend (acción 'order' con token compartido).
-   Fire and forget: NUNCA bloquea el envío por WhatsApp. */
+
+/* Envía el pedido al backend con verificación y canal doble:
+   1) POST normal legible. 2) Respaldo GET con payload en base64
+   (inmune al redirect roto del POST que aparece intermitentemente). */
 async function saveOrderToSheet(order) {
     const url = APP_CONFIG.dataSource.appsScriptUrl;
 
@@ -319,17 +321,39 @@ async function saveOrderToSheet(order) {
 
     const payload = Object.assign({ action: 'order', token: APP_CONFIG.dataSource.orderToken }, order);
 
+    /* Intento 1: POST legible (podemos confirmar el ok del servidor) */
     try {
-        await fetch(url, {
+        const response = await fetch(url, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
         });
-        console.log('[Orders] Pedido registrado en la hoja orders:', order.id);
-        return true;
+        let data = null;
+        try { data = JSON.parse(await response.text()); } catch (error) { data = null; }
+
+        if (data && data.ok) {
+            console.log('[Orders] Pedido registrado en la hoja orders:', order.id);
+            return true;
+        }
     } catch (error) {
-        console.error('[Orders] No se pudo guardar el pedido en la hoja:', error);
-        return false;
+        /* cae al respaldo */
     }
+
+    /* Intento 2: GET con payload en base64 */
+    try {
+        const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+        const response = await fetch(url + '?action=order&payload=' + encodeURIComponent(encoded));
+        let data = null;
+        try { data = JSON.parse(await response.text()); } catch (error) { data = null; }
+
+        if (data && data.ok) {
+            console.log('[Orders] Pedido registrado (canal alternativo):', order.id);
+            return true;
+        }
+    } catch (error) {
+        /* falló definitivamente */
+    }
+
+    console.error('[Orders] No se pudo guardar el pedido (ambos canales).');
+    return false;
 }
