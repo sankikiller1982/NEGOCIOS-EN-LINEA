@@ -131,9 +131,11 @@ function renderContent() {
 
     const search = normalizeText(CATALOG_STATE.search);
 
-    /* Caso 1: búsqueda activa */
+    /* Caso 1: búsqueda activa (solo productos de categorías visibles) */
     if (search !== '') {
+        const activeIds = CATALOG_STATE.categories.map(function (c) { return c.id; });
         const results = CATALOG_STATE.products.filter(function (product) {
+            if (activeIds.indexOf(product.categoryId) === -1) return false;
             return normalizeText(product.name).indexOf(search) !== -1 ||
                    normalizeText(product.description).indexOf(search) !== -1;
         });
@@ -755,41 +757,8 @@ function openWhatsAppUrl(url) {
    FASE 8: TEMA DINÁMICO DESDE LA HOJA CONFIG
    -------------------------------------------------------------------------- */
 
-/* Convierte hex (#rgb o #rrggbb) a {r,g,b}. Devuelve null si es inválido. */
-function hexToRgb(hex) {
-    if (typeof hex !== 'string') return null;
-
-    let value = hex.trim().replace(/^#/, '');
-    if (value.length === 3) {
-        value = value.split('').map(function (c) { return c + c; }).join('');
-    }
-    if (!/^[0-9a-fA-F]{6}$/.test(value)) return null;
-
-    return {
-        r: parseInt(value.substring(0, 2), 16),
-        g: parseInt(value.substring(2, 4), 16),
-        b: parseInt(value.substring(4, 6), 16)
-    };
-}
-
-/* Luminancia relativa según WCAG. */
-function luminance(rgb) {
-    const channel = function (c) {
-        const s = c / 255;
-        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-    };
-    return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
-}
-
-function isDarkColor(hex) {
-    const rgb = hexToRgb(hex);
-    return rgb ? luminance(rgb) < 0.45 : false;
-}
-
-/* Texto que contrasta con un fondo dado (WCAG). */
-function contrastTextFor(hex) {
-    return isDarkColor(hex) ? '#ffffff' : '#111111';
-}
+/* Los helpers de color (hexToRgb, luminance, isDarkColor, contrastTextFor)
+   viven en utils.js desde la Fase 12.6, compartidos con el panel admin. */
 
 /* Aplica el tema del negocio a las variables CSS globales. */
 function applyTheme(business) {

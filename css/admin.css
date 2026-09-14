@@ -1,0 +1,439 @@
+/* ==========================================================================
+   FASE 12.2: PANEL ADMIN (login + shell + dashboard)
+   ========================================================================== */
+
+/* Login */
+.admin-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.admin-login__card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-md);
+}
+
+.admin-login__title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.admin-login__subtitle {
+    color: var(--muted-color);
+    font-size: 0.9375rem;
+}
+
+.admin-field__label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.admin-field__input {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.admin-field__error {
+    color: var(--danger-color);
+    font-size: 0.8125rem;
+}
+
+/* Botones */
+.admin-btn {
+    padding: 12px 16px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+}
+
+.admin-btn--primary {
+    background: var(--primary-color);
+    color: var(--on-primary-color, #ffffff);
+}
+
+.admin-btn--ghost {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    font-weight: 600;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+}
+
+/* Shell: barra superior */
+.admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+}
+
+.admin-topbar__name {
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.admin-topbar__links {
+    display: flex;
+    gap: 8px;
+}
+
+/* Shell: navegación */
+.admin-nav {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-nav__item {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--surface-color);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.admin-nav__item--active {
+    background: var(--primary-color);
+    color: var(--on-primary-color, #ffffff);
+    border-color: var(--primary-color);
+}
+
+/* Dashboard */
+.admin-main {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 960px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.admin-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.admin-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-card__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.admin-card__title {
+    color: var(--muted-color);
+    font-size: 0.8125rem;
+}
+
+.admin-block {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    color: var(--text-color);
+}
+
+.admin-block h2 {
+    font-size: 1.0625rem;
+    margin-bottom: 8px;
+}
+
+.admin-hint {
+    color: var(--muted-color);
+    font-size: 0.8125rem;
+    margin-top: 8px;
+}
+
+.admin-status { font-weight: 700; }
+.admin-status--open { color: var(--success-color); }
+.admin-status--closed { color: var(--danger-color); }
+
+/* ==========================================================================
+   FASE 12.3: GESTIÓN DE PRODUCTOS
+   ========================================================================== */
+.admin-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.admin-section-head h2 {
+    font-size: 1.125rem;
+    color: var(--text-color);
+}
+
+.admin-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-row--hidden { opacity: 0.6; }
+
+.admin-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.admin-row__name {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.admin-row__meta {
+    color: var(--muted-color);
+    font-size: 0.8125rem;
+}
+
+.admin-row__actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.admin-btn--danger {
+    background: transparent;
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+    font-weight: 600;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+}
+
+.admin-form {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-form h2 {
+    color: var(--text-color);
+    font-size: 1.125rem;
+}
+
+.admin-form__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.admin-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-color);
+    font-size: 0.9375rem;
+}
+
+.admin-check input {
+    width: 18px;
+    height: 18px;
+}
+
+/* ==========================================================================
+   FASE 12.5: PEDIDOS
+   ========================================================================== */
+.admin-order {
+    align-items: flex-start;
+}
+
+.admin-order__status {
+    align-self: flex-start;
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.admin-order__status--pending {
+    background: var(--primary-color);
+    color: var(--on-primary-color, #ffffff);
+}
+
+.admin-order__status--completed {
+    background: var(--success-color);
+    color: var(--on-success-color, #ffffff);
+}
+
+.admin-order__status--cancelled {
+    background: var(--danger-color);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   FASE 12.6: PERSONALIZACIÓN CON PREVIEW
+   ========================================================================== */
+.admin-colors {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-colors > div {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-colors input[type="color"] {
+    height: 44px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--background-color);
+}
+
+/* Preview en vivo: define sus propias variables CSS en el contenedor */
+.cz-preview {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.cz-preview__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.cz-preview__logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.cz-preview__logo-fallback {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--primary-color);
+    color: var(--on-primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.cz-preview__name {
+    font-weight: 700;
+}
+
+.cz-preview__body {
+    padding: 12px;
+    background: var(--background-color);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cz-preview__tabs {
+    display: flex;
+    gap: 6px;
+}
+
+.cz-preview__tab {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 0.75rem;
+    background: var(--surface-color);
+}
+
+.cz-preview__tab--active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--on-primary-color);
+}
+
+.cz-preview__card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-color);
+}
+
+.cz-preview__muted {
+    color: var(--muted-color);
+    font-size: 0.75rem;
+}
+
+.cz-preview__price {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.cz-preview__btn {
+    background: var(--primary-color);
+    color: var(--on-primary-color);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 8px;
+    font-weight: 700;
+}
