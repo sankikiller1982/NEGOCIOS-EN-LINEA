@@ -437,3 +437,27 @@
     padding: 8px;
     font-weight: 700;
 }
+
+/* ==========================================================================
+   FASE 12.8: DRAG & DROP DE CATEGORÍAS
+   ========================================================================== */
+.admin-row__handle {
+    cursor: grab;
+    touch-action: none;
+    color: var(--muted-color);
+    font-size: 1.125rem;
+    line-height: 1;
+    padding: 4px 8px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.admin-row__handle:active {
+    cursor: grabbing;
+}
+
+.admin-row--dragging {
+    opacity: 0.55;
+    border-style: dashed;
+    border-color: var(--primary-color);
+}
