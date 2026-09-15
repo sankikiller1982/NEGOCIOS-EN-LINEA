@@ -1,7 +1,8 @@
 /* ==========================================================================
    PLATAFORMA DE CATÁLOGO - admin.js
-   Fases 12.2 a 12.6: login, dashboard, productos, categorías, pedidos
-   y personalización con preview en vivo.
+   Versión 12.8: login, dashboard, CRUD de productos y categorías,
+   pedidos con estados, personalización con preview en vivo,
+   logout real, canal doble POST/GET y drag & drop de categorías.
    La contraseña se valida en el servidor (Apps Script), nunca en el navegador.
    ========================================================================== */
 
@@ -12,10 +13,10 @@ const ADMIN_STATE = {
     editingProduct: null,
     editingCategory: null,
     business: null,
-    categories: [],
-    categoriesRaw: [],
-    products: [],
-    productsRaw: [],
+    categories: [],       // activas normalizadas → catálogo/dashboard
+    categoriesRaw: [],    // filas crudas → gestión
+    products: [],         // activos normalizados → dashboard
+    productsRaw: [],      // filas crudas → gestión
     orders: []
 };
 
@@ -70,7 +71,7 @@ function clearAdminToken() {
 }
 
 /* --------------------------------------------------------------------------
-   BACKEND
+   BACKEND: CANAL DOBLE (POST primero, GET de respaldo)
    -------------------------------------------------------------------------- */
 async function adminPost(payload) {
     /* Intento 1: POST normal */
@@ -80,8 +81,7 @@ async function adminPost(payload) {
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
         });
-        const text = await response.text();
-        const parsed = tryParseJson_(text);
+        const parsed = tryParseJson_(await response.text());
         if (parsed) return parsed;
     } catch (error) {
         /* cae al respaldo */
@@ -248,7 +248,6 @@ async function handleAdminSubmit(event) {
         }
 
         showToast('Error: ' + (res.error || 'no se pudo guardar'));
-        return;
     }
 
     /* Guardar personalización */
@@ -297,8 +296,8 @@ function handleAdminClick(event) {
     const app = getElement('#admin-app');
     const type = action.getAttribute('data-action');
 
+    /* Logout: invalida la sesión en el servidor (no solo en el navegador) */
     if (type === 'logout') {
-        /* Invalida la sesión en el servidor (no solo en el navegador) */
         adminPost({ action: 'logout', token: ADMIN_STATE.token }).catch(function () {});
         clearAdminToken();
         ADMIN_STATE.view = 'dashboard';
@@ -618,7 +617,7 @@ function renderAdminShell(app) {
 }
 
 /* --------------------------------------------------------------------------
-   FASE 12.3: PRODUCTOS
+   PRODUCTOS
    -------------------------------------------------------------------------- */
 function categoryName(id) {
     const cat = ADMIN_STATE.categories.find(function (c) { return c.id === id; });
@@ -701,10 +700,18 @@ function renderProductForm(app) {
 }
 
 /* --------------------------------------------------------------------------
-   FASE 12.4: CATEGORÍAS
+   CATEGORÍAS (con orden por número y drag & drop)
    -------------------------------------------------------------------------- */
+
+/* Categorías ordenadas por su número de orden (igual que el catálogo). */
+function sortedCategoriesRaw() {
+    return ADMIN_STATE.categoriesRaw.slice().sort(function (a, b) {
+        return (Number(a.order) || 0) - (Number(b.order) || 0);
+    });
+}
+
 function renderCategories(app) {
-    const rows = ADMIN_STATE.categoriesRaw;
+    const rows = sortedCategoriesRaw();
 
     const items = rows.map(function (c) {
         const active = toBoolean(c.active);
@@ -763,7 +770,7 @@ function renderCategoryForm(app) {
 }
 
 /* --------------------------------------------------------------------------
-   FASE 12.5: PEDIDOS
+   PEDIDOS
    -------------------------------------------------------------------------- */
 function renderOrders(app) {
     const filter = ADMIN_STATE.orderFilter || 'todos';
@@ -822,7 +829,7 @@ function renderOrders(app) {
 }
 
 /* --------------------------------------------------------------------------
-   FASE 12.6: PERSONALIZACIÓN CON PREVIEW EN VIVO
+   PERSONALIZACIÓN CON PREVIEW EN VIVO
    -------------------------------------------------------------------------- */
 function adminVal(id) {
     const node = getElement('#' + id);
@@ -968,6 +975,8 @@ function handleCategoryDragMove(event) {
     if (!targetRow || targetRow === CATEGORY_DRAG.element) return;
 
     const list = CATEGORY_DRAG.element.parentNode;
+    if (targetRow.parentNode !== list) return;
+
     const rect = targetRow.getBoundingClientRect();
     const before = (event.clientY - rect.top) < (rect.height / 2);
 
@@ -993,7 +1002,7 @@ async function handleCategoryDragEnd() {
         dragged.parentNode.querySelectorAll('.admin-row[data-cat-id]')
     );
     const newIds = rows.map(function (r) { return r.getAttribute('data-cat-id'); });
-    const oldIds = ADMIN_STATE.categoriesRaw.map(function (c) { return String(c.id); });
+    const oldIds = sortedCategoriesRaw().map(function (c) { return String(c.id); });
 
     CATEGORY_DRAG = null;
 
