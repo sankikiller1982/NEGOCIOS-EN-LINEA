@@ -39,6 +39,7 @@ function initAdmin() {
     app.addEventListener('submit', handleAdminSubmit);
     app.addEventListener('click', handleAdminClick);
     app.addEventListener('input', handleAdminInput);
+    app.addEventListener('pointerdown', handleCategoryDragStart);
 
     startAdmin(app);
 }
@@ -711,7 +712,8 @@ function renderCategories(app) {
             return String(p.category_id) === String(c.id);
         }).length;
 
-        return '<div class="admin-row' + (active ? '' : ' admin-row--hidden') + '">' +
+        return '<div class="admin-row' + (active ? '' : ' admin-row--hidden') + '" data-cat-id="' + escapeHTML(c.id) + '">' +
+            '<span class="admin-row__handle" data-drag-id="' + escapeHTML(c.id) + '" title="Arrastrar para reordenar" aria-label="Arrastrar para reordenar ' + escapeHTML(c.name || '') + '">⠿</span>' +
             '<div class="admin-row__main">' +
                 '<span class="admin-row__name">' + escapeHTML(c.name || '') + '</span>' +
                 '<span class="admin-row__meta">Orden ' + (c.order || 0) + ' · ' + count + ' productos' + (active ? '' : ' · OCULTA') + '</span>' +
@@ -732,7 +734,8 @@ function renderCategories(app) {
                 '<h2>Categorías (' + rows.length + ')</h2>' +
                 '<button class="admin-btn admin-btn--primary" data-action="new-category" type="button">+ Nueva categoría</button>' +
             '</div>' +
-            (rows.length ? items : '<p class="admin-hint">Todavía no hay categorías cargadas.</p>') +
+            '<p class="admin-hint">Arrastrá el ícono ⠿ para reordenar. También podés fijar un número exacto desde "Editar".</p>' +
+            (rows.length ? '<div id="categories-list">' + items + '</div>' : '<p class="admin-hint">Todavía no hay categorías cargadas.</p>') +
         '</main>';
 }
 
@@ -924,4 +927,92 @@ function updatePreview() {
         if (logo) logoNode.src = logo;
         fallbackNode.textContent = name.charAt(0).toUpperCase();
     }
+}
+
+/* --------------------------------------------------------------------------
+   FASE 12.8: DRAG & DROP DE CATEGORÍAS
+   Basado en pointer events: funciona con mouse y con touch.
+   -------------------------------------------------------------------------- */
+let CATEGORY_DRAG = null;
+
+function handleCategoryDragStart(event) {
+    if (ADMIN_STATE.view !== 'categorias') return;
+
+    const handle = event.target.closest('[data-drag-id]');
+    if (!handle) return;
+
+    const row = handle.closest('.admin-row[data-cat-id]');
+    if (!row) return;
+
+    event.preventDefault();
+
+    CATEGORY_DRAG = {
+        id: handle.getAttribute('data-drag-id'),
+        element: row
+    };
+
+    row.classList.add('admin-row--dragging');
+
+    document.addEventListener('pointermove', handleCategoryDragMove);
+    document.addEventListener('pointerup', handleCategoryDragEnd);
+    document.addEventListener('pointercancel', handleCategoryDragEnd);
+}
+
+function handleCategoryDragMove(event) {
+    if (!CATEGORY_DRAG) return;
+
+    const under = document.elementFromPoint(event.clientX, event.clientY);
+    if (!under) return;
+
+    const targetRow = under.closest('.admin-row[data-cat-id]');
+    if (!targetRow || targetRow === CATEGORY_DRAG.element) return;
+
+    const list = CATEGORY_DRAG.element.parentNode;
+    const rect = targetRow.getBoundingClientRect();
+    const before = (event.clientY - rect.top) < (rect.height / 2);
+
+    if (before) {
+        list.insertBefore(CATEGORY_DRAG.element, targetRow);
+    } else {
+        list.insertBefore(CATEGORY_DRAG.element, targetRow.nextSibling);
+    }
+}
+
+async function handleCategoryDragEnd() {
+    document.removeEventListener('pointermove', handleCategoryDragMove);
+    document.removeEventListener('pointerup', handleCategoryDragEnd);
+    document.removeEventListener('pointercancel', handleCategoryDragEnd);
+
+    if (!CATEGORY_DRAG) return;
+
+    const dragged = CATEGORY_DRAG.element;
+    dragged.classList.remove('admin-row--dragging');
+
+    const app = getElement('#admin-app');
+    const rows = Array.prototype.slice.call(
+        dragged.parentNode.querySelectorAll('.admin-row[data-cat-id]')
+    );
+    const newIds = rows.map(function (r) { return r.getAttribute('data-cat-id'); });
+    const oldIds = ADMIN_STATE.categoriesRaw.map(function (c) { return String(c.id); });
+
+    CATEGORY_DRAG = null;
+
+    /* Si el orden no cambió, no se toca nada */
+    if (newIds.join('|') === oldIds.join('|')) return;
+
+    const items = newIds.map(function (id, index) {
+        return { id: id, order: (index + 1) * 10 };
+    });
+
+    const res = await adminPost({ action: 'reorderCategories', token: ADMIN_STATE.token, items: items })
+        .catch(function () { return { ok: false }; });
+
+    if (res.ok) {
+        showToast('✓ Nuevo orden guardado');
+    } else {
+        showToast('Error: no se pudo guardar el orden');
+    }
+
+    await loadAdminData();
+    renderAdminView(app);
 }
